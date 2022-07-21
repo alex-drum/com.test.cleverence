@@ -1,3 +1,6 @@
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import java.io.*;
 import java.net.ServerSocket;
 import java.sql.*;
@@ -27,6 +30,18 @@ public class Server {
                 ) {
                     while (true) {
                         String request = handler.read();
+                        if (request != null) {
+                            System.out.println(request);
+                            switch (request) {
+                                case "/getProductName":
+                                    String productName = getProductName(request, handler);
+                                    handler.write(productName);
+                                    break;
+                                case "/createProductCard":
+                                    createProductCard(handler);
+                            }
+                        }
+
                         /*switch (request) {
                             case "/signIn":
                                 checkUser(handler);
@@ -59,6 +74,58 @@ public class Server {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void createProductCard(Handler handler) {
+        String jsonString = handler.read();
+        System.out.println(jsonString);
+        JsonObject productCard = new JsonParser().parse(jsonString).getAsJsonObject();
+//        System.out.println(productCard.get("product_name"));
+//        System.out.println(productCard.get("product_description"));
+//        System.out.println(productCard.get("product_quantity"));
+        String query = "INSERT INTO `products`.`stock` (`product_name`, `product_description`, `product_quantity`) VALUES ('"
+                + productCard.get("product_name").getAsString() + "', '"
+                + productCard.get("product_description").getAsString() + "', '"
+                + productCard.get("product_quantity") + "')";
+        System.out.println(query);
+        insertQuery(query, handler);
+
+
+}
+
+    private void insertQuery(String query, Handler handler) {
+
+        try {
+            connection = DriverManager.getConnection(url, dbUser, dbPassword);
+            statement = connection.createStatement();
+            int i = statement.executeUpdate(query);
+            if (i == 1) {
+                System.out.println("New product card is successfully created!");
+//                handler.write("New pet successfully created!");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String getProductName(String request, Handler handler) {
+        String productName = null;
+        String barcode = handler.read();
+        System.out.println(barcode);
+
+        String query = "SELECT product_name FROM products.product_list WHERE (`barcode` = '" + barcode + "')";
+
+        try {
+            connection = DriverManager.getConnection(url, dbUser, dbPassword );
+            statement = connection.createStatement();
+            resultSet = statement.executeQuery(query);
+            while (resultSet.next()) {
+                productName = resultSet.getString("product_name");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return productName;
     }
 /*
 

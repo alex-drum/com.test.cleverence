@@ -1,1 +1,23 @@
 CREATE SCHEMA `products` ;
+CREATE TABLE `products`.`product_list` (
+  `barcode` INT NOT NULL,
+  `product_name` VARCHAR(45) NOT NULL,
+  PRIMARY KEY (`barcode`),
+  UNIQUE INDEX `product_name_UNIQUE` (`product_name` ASC) VISIBLE);
+INSERT INTO `products`.`product_list` (`barcode`, `product_name`) VALUES ('123', 'Хлеб \"Бородинский\"');
+INSERT INTO `products`.`product_list` (`barcode`, `product_name`) VALUES ('124', 'Конфеты \"Белочка\"');
+INSERT INTO `products`.`product_list` (`barcode`, `product_name`) VALUES ('125', 'Печенье \"Овсяное\"');
+CREATE TABLE `products`.`stock` (
+  `id_product` INT NOT NULL AUTO_INCREMENT,
+  `product_name` VARCHAR(45) NOT NULL,
+  `product_description` VARCHAR(45) NULL,
+  `product_quantity` INT NOT NULL,
+  PRIMARY KEY (`id_product`),
+  INDEX `fk_stock_productName_idx` (`product_name` ASC) VISIBLE,
+  CONSTRAINT `fk_stock_productName`
+    FOREIGN KEY (`product_name`)
+    REFERENCES `products`.`product_list` (`product_name`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION);
+
+INSERT INTO `products`.`stock` (`product_name`, `product_description`, `product_quantity`) VALUES ('Конфеты \"Белочка\"', 'Уценка', '100');
